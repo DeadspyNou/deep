@@ -1,56 +1,53 @@
-def prediction(row,weights):
-  activation=weights[0]
+And = [[0,0,0],
+[0,1,0],
+[1,0,0],
+[1,1,1]]
+
+Or = [[0,0,0],
+[0,1,1],
+[1,0,1],
+[1,1,1]]
+
+def predict_W_threshold(row, weight):
+  import math
+
+  activation = weight[0]
+
   for i in range(len(row)-1):
-    activation += weights[i+1]*row[i]
-  return 1.0 if activation >=0.0 else 0.0
+    activation += weight[i+1] * row[i]
 
-def train_weights(data,lrate,epoch):
-  weights=[0.0 for i in range(len(data[0]))]
-  for epoch in range(epoch):
-    sum_error=0
-    for row in data:
-      pred=prediction(row,weights)
-      error= row[-1] - pred
-      sum_error += error**2
-      weights[0]+= lrate *error
+  return 0.0 if activation < 0.0 else 1.0
+
+forplotsumerror=[]
+forpltepoch=[]
+def train_weight(train, l_rate, n_epoch):
+  weight = [0.0 for i in range(len(train[0]))]
+  sum_err_list = []
+
+  for epoch in range(n_epoch):
+    Sum_err = 0.0
+    for row in train:
+      prediction = predict_W_threshold(row, weight)
+      error = row[-1] - prediction
+      Sum_err += error**2
+      
+      # Updating Bias
+      weight[0] = weight[0] + l_rate + error
+
       for i in range(len(row)-1):
-        weights[i+1] += (lrate * error * row[i])
-    print('>epoch = %d , lrate = % 3.f, error = %.3f'%(epoch,lrate,sum_error))
-    print(weights)
-  return(weights)
+        
+        # Updating Weights
+        weight[i+1] = weight[i+1] + row[i] * l_rate * error
 
-#AND gate
-data=[[0,0,0,0],[0,0,1,0],[0,1,0,0],[0,1,1,0],[1,0,0,0],[1,1,0,0],[1,0,1,0],[1,1,1,1]]
-lrate=0.1
-epoch=5
-weights= train_weights(data,lrate,epoch)
-print(weights)
+    print('Epoch=%d, learning_rate=%f, Total_Error=%f'%(epoch, l_rate, Sum_err))
+    forplotsumerror.append(Sum_err)
+    
+  return (weight, forplotsumerror)
 
+n_epoch=100
+l_rate=0.01
+weight, forplotsumerror =train_weight(And,l_rate,n_epoch)
 
-
-for rows in data:
-  print(len(rows))
-  pred=prediction(rows,weights)
-  print("Expected : %d ,  Predicted : %d" % (rows[-1], pred))
-
-#OR gate
-data=[[0,0,0,0],[0,0,1,1],[0,1,0,1],[0,1,1,1],[1,0,0,1],[1,1,0,1],[1,0,1,1],[1,1,1,1]]
-lrate=0.1
-epoch=5
-weights=train_weights(data,lrate,epoch)
-print(weights)
-
-for rows in data:
-  pred=prediction(rows,weights)
-  print("Expected : %d ,  Predicted : %d" % (rows[-1], pred))
-
-#XOR gate
-data=[[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
-lrate=0.1
-epoch=5
-weights=train_weights(data,lrate,epoch)
-print(weights)
-
-for rows in data:
-  pred=prediction(rows,weights)
-  print("Expected : %d ,  Predicted : %d" % (rows[-1], pred))
+for row in And:
+    prediction = predict_W_threshold(row, weight)
+    print(f"    {row[-1]}\t\t\t{prediction}")
